@@ -2751,8 +2751,9 @@ def unpatch():
         advance = extra.advance
         scanRegExp = extra.scanRegExp
 
-def tokenize(code=None, options=None):
+def tokenize(code, **options):
     global delegate, source, index, lineNumber, lineStart, length, lookahead, state, extra
+    options = jsdict(options)
     toString = None
     token = None
     tokens = None
@@ -2824,8 +2825,9 @@ def tokenize(code=None, options=None):
 })
     return tokens
 
-def parse(code=None, options=None):
+def parse(code, **options):
     global delegate, source, index, lineNumber, lineStart, length, lookahead, state, extra
+    options = jsdict(options)
     program = None
     toString = None
     toString = str
