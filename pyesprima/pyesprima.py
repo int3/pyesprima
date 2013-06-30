@@ -1406,30 +1406,33 @@ def peekLineTerminator():
     lineStart = start
     return found
 
-def throwError(token=None, messageFormat=None):
-    def __temp__43(whole=None, index=None):
+def throwError(*args):
+    token = args[0]
+    messageFormat = args[1]
+
+    def __temp__43(index):
+        index = int(index.group(1))
         assert__py__(index < len(args), "Message reference must be in range")
-        return args[index]
+        return str(args[index])
     
     error = None
-    args = Array.prototype.slice.call(arguments, 2)
-    msg = messageFormat.replace(RegExp(r'%(\d)'), __temp__43)
+    msg = re.sub(r'%(\d)', __temp__43, messageFormat)
     if ('undefined' if not ('lineNumber' in token) else typeof(token.lineNumber)) == "number":
-        error = RuntimeError((("Line " + token.lineNumber) + ": ") + msg)
+        error = RuntimeError((("Line " + str(token.lineNumber)) + ": ") + msg)
         error.index = token.range[0]
         error.lineNumber = token.lineNumber
         error.column = (token.range[0] - lineStart) + 1
     else:
-        error = RuntimeError((("Line " + lineNumber) + ": ") + msg)
+        error = RuntimeError((("Line " + str(lineNumber)) + ": ") + msg)
         error.index = index
         error.lineNumber = lineNumber
         error.column = (index - lineStart) + 1
     error.description = msg
     raise error
 
-def throwErrorTolerant():
+def throwErrorTolerant(*args):
     try:
-        throwError.apply(None, arguments)
+        throwError(*args)
     except Exception as e:
         if extra.errors:
             extra.errors.append(e)
