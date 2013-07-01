@@ -20,8 +20,7 @@ is a good way to get down to business. The API is exactly the same, so you can
 easily swap in an interface to the external Node process later on.
 
 Also, since the code is semi-automatically translated using [js2py][2], it's
-pretty easy to keep up-to-date. You could even do it yourself. Don't fear the
-bit rot!
+pretty easy to keep up-to-date, so bit-rot is less of a problem.
 
 API
 ---

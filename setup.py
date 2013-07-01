@@ -6,7 +6,7 @@ def read(fname):
 
 setup(
     name = "pyesprima",
-    version = "0.1.2",
+    version = "1.0.0",
     author = "Jez Ng",
     author_email = "me@jezng.com",
     description = "Python port of Esprima, the Javascript parser.",

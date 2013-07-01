@@ -71,10 +71,17 @@ class jsdict(object):
         return name in self.__dict__
     def __repr__(self):
         return str(self.__dict__)
+    def pop(self, *args):
+        return self.__dict__.pop(*args)
+
+class WrappedList(list): pass
 
 class RegExp(object):
     def __init__(self, pattern, flags=''):
         self.flags = flags
+        for c in flags:
+            if c not in 'gimy':
+                raise SyntaxError('Invalid flags: ' + flags)
         pyflags = 0 | re.M if 'm' in flags else 0 | re.I if 'i' in flags else 0
         self.source = pattern
         self.pattern = re.compile(pattern, pyflags)
@@ -148,11 +155,13 @@ def __temp__35():
 })
 
 def __temp__34(discriminant=None, cases=None):
-    return jsdict({
+    rv = jsdict({
 "type": Syntax.SwitchStatement,
-"discriminant": discriminant,
-"cases": cases,
+"discriminant": discriminant
 })
+    if cases:
+        rv.cases = cases
+    return rv
 
 def __temp__33(test=None, consequent=None):
     return jsdict({
@@ -550,6 +559,7 @@ def isHexDigit(ch=None):
     return "0123456789abcdefABCDEF".find(ch) >= 0
 
 def isOctalDigit(ch=None):
+    if ch is None: return False
     return "01234567".find(ch) >= 0
 
 def isWhiteSpace(ch=None):
@@ -755,7 +765,6 @@ def getEscapedIdentifier():
     global index
     ch = None
     id = None
-    index += 1
     index += 1
     ch = (ord(source[index - 1]) if index - 1 < len(source) else None)
     id = unichr(ch)
@@ -1022,11 +1031,11 @@ def scanNumericLiteral():
             index += 1
             number += source[index - 1]
             __temp__45 = isDecimalDigit((ord(source[index]) if index < len(source) else None))
-        ch = source[index]
+        ch = source[index] if index < len(source) else None
     if (ch == "e") or (ch == "E"):
         index += 1
         number += source[index - 1]
-        ch = source[index]
+        ch = source[index] if index < len(source) else None
         if (ch == "+") or (ch == "-"):
             index += 1
             number += source[index - 1]
@@ -1072,7 +1081,7 @@ def scanStringLiteral():
             break
         elif ch == "\\":
             index += 1
-            ch = source[index - 1]
+            ch = source[index - 1] if index - 1 < len(source) else None
             if (not ch) or (not isLineTerminator((ord(ch[0]) if 0 < len(ch) else None))):
                 while 1:
                     if ch == "n":
@@ -1087,7 +1096,7 @@ def scanStringLiteral():
                     elif (ch == "x") or (ch == "u"):
                         restore = index
                         unescaped = scanHexEscape(ch)
-                        if unescaped not in [None, False]:
+                        if unescaped not in [None, False, '']:
                             str__py__ += unescaped
                         else:
                             index = restore
@@ -1116,7 +1125,7 @@ def scanStringLiteral():
                                     code = (code * 8) + "01234567".find(source[index - 1])
                             str__py__ += unichr(code)
                         else:
-                            str__py__ += ch
+                            str__py__ += str(ch)
                         break
                     break
             else:
@@ -1183,7 +1192,7 @@ def scanRegExp():
     if not terminated:
         throwError(jsdict({
 }), Messages.UnterminatedRegExp)
-    pattern = str[1:(1 + (len(str__py__) - 2))]
+    pattern = str__py__[1:(1 + (len(str__py__) - 2))]
     flags = ""
     while index < length:
         ch = source[index]
@@ -1239,7 +1248,7 @@ def isIdentifierName(token=None):
 def advanceSlash():
     prevToken = None
     checkToken = None
-    prevToken = extra.tokens[len(extra.tokens) - 1]
+    prevToken = extra.tokens[len(extra.tokens) - 1] if len(extra.tokens) > 0 else None
     if not prevToken:
         return scanRegExp()
     if prevToken.type == "Punctuator":
@@ -1249,17 +1258,19 @@ def advanceSlash():
                 return scanRegExp()
             return scanPunctuator()
         if prevToken.value == "}":
-            if extra.tokens[extra.openCurlyToken - 3] and (extra.tokens[extra.openCurlyToken - 3].type == "Keyword"):
-                checkToken = extra.tokens[extra.openCurlyToken - 4]
+            if 0 <= extra.openCurlyToken - 3 < len(extra.tokens) and \
+                    extra.tokens[extra.openCurlyToken - 3] and (extra.tokens[extra.openCurlyToken - 3].type == "Keyword"):
+                checkToken = extra.tokens[extra.openCurlyToken - 4] if 0 < extra.openCurlyToken - 4 else None
                 if not checkToken:
                     return scanPunctuator()
-            elif extra.tokens[extra.openCurlyToken - 4] and (extra.tokens[extra.openCurlyToken - 4].type == "Keyword"):
+            elif 0 <= extra.openCurlyToken - 4 < len(extra.tokens) and \
+                    extra.tokens[extra.openCurlyToken - 4] and (extra.tokens[extra.openCurlyToken - 4].type == "Keyword"):
                 checkToken = extra.tokens[extra.openCurlyToken - 5]
                 if not checkToken:
                     return scanRegExp()
             else:
                 return scanPunctuator()
-            if FnExprTokens.indexOf(checkToken.value) >= 0:
+            if list_indexOf(FnExprTokens, checkToken.value) >= 0:
                 return scanPunctuator()
             return scanRegExp()
         return scanRegExp()
@@ -1382,10 +1393,7 @@ def peekLineTerminator():
     lineStart = start
     return found
 
-def throwError(*args):
-    token = args[0]
-    messageFormat = args[1]
-
+def throwError(token, messageFormat, *args):
     def __temp__43(index):
         index = int(index.group(1))
         assert__py__(index < len(args), "Message reference must be in range")
@@ -1394,16 +1402,17 @@ def throwError(*args):
     error = None
     msg = re.sub(r'%(\d)', __temp__43, messageFormat)
     if ('undefined' if not ('lineNumber' in token) else typeof(token.lineNumber)) == "number":
-        error = RuntimeError((("Line " + str(token.lineNumber)) + ": ") + msg)
+        error = RuntimeError((("Error: Line " + str(token.lineNumber)) + ": ") + msg)
         error.index = token.range[0]
         error.lineNumber = token.lineNumber
         error.column = (token.range[0] - lineStart) + 1
     else:
-        error = RuntimeError((("Line " + str(lineNumber)) + ": ") + msg)
+        error = RuntimeError((("Error: Line " + str(lineNumber)) + ": ") + msg)
         error.index = index
         error.lineNumber = lineNumber
         error.column = (index - lineStart) + 1
     error.description = msg
+    error.message = error.args[0]
     raise error
 
 def throwErrorTolerant(*args):
@@ -1563,7 +1572,7 @@ def parseObjectInitialiser():
     kind = None
     map = jsdict({
 })
-    toString = str
+    toString = unicode
     expect("{")
     __temp__48 = match("}")
     while not __temp__48:
@@ -2380,7 +2389,7 @@ def parseStatement():
 }), Messages.Redeclaration, "Label", expr.name)
         state.labelSet[key] = True
         labeledBody = parseStatement()
-        del state.labelSet[key]
+        state.labelSet.pop(key, None)
         return delegate.markEnd(delegate.createLabeledStatement(expr, labeledBody))
     consumeSemicolon()
     return delegate.markEnd(delegate.createExpressionStatement(expr))
@@ -2685,7 +2694,7 @@ def filterTokenLocation():
     i = None
     entry = None
     token = None
-    tokens = []
+    tokens = WrappedList()
     i = 0
     while 1:
         if not (i < len(extra.tokens)):
@@ -2751,10 +2760,9 @@ def unpatch():
 def tokenize(code, **options):
     global delegate, source, index, lineNumber, lineStart, length, lookahead, state, extra
     options = jsdict(options)
-    toString = None
     token = None
     tokens = None
-    toString = str
+    toString = toJSString
     if (('undefined' if not 'code' in locals() else typeof(code)) != "string") and (not isinstance(code, str)):
         code = toString(code)
     delegate = SyntaxTreeDelegate
@@ -2822,12 +2830,21 @@ def tokenize(code, **options):
 })
     return tokens
 
+def toJSString(s):
+    if s is True:
+        return 'true'
+    elif s is False:
+        return 'false'
+    elif s is None:
+        return 'null'
+    else:
+        return unicode(s)
+
 def parse(code, **options):
     global delegate, source, index, lineNumber, lineStart, length, lookahead, state, extra
     options = jsdict(options)
     program = None
-    toString = None
-    toString = str
+    toString = toJSString
     if (('undefined' if not 'code' in locals() else typeof(code)) != "string") and (not isinstance(code, str)):
         code = toString(code)
     delegate = SyntaxTreeDelegate
@@ -2852,7 +2869,7 @@ def parse(code, **options):
     if ('undefined' if not 'options' in locals() else typeof(options)) != "undefined":
         extra.range = (('undefined' if not ('range' in options) else typeof(options.range)) == "boolean") and options.range
         extra.loc = (('undefined' if not ('loc' in options) else typeof(options.loc)) == "boolean") and options.loc
-        if (extra.loc and (options.source != None)) and (options.source != undefined):
+        if (extra.loc and (options.source != None)) and (options.source != None):
             extra.source = toString(options.source)
         if (('undefined' if not ('tokens' in options) else typeof(options.tokens)) == "boolean") and options.tokens:
             extra.tokens = []
