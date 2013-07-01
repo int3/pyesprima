@@ -30,7 +30,7 @@
 
 # -*- coding: latin-1 -*-
 from __future__ import print_function
-import re
+import re, json
 def typeof(t):
     if t is None: return 'undefined'
     elif isinstance(t, bool): return 'boolean'
@@ -82,6 +82,7 @@ class RegExp(object):
         return self.pattern.search(s) is not None
 
 console = jsdict({"log":print})
+JSON = jsdict({"stringify": lambda a,b=None,c=None:json.dumps(a, default=b, indent=c)})
 
 def __temp__42(object=None, body=None):
     return jsdict({
@@ -749,7 +750,7 @@ def skipComment():
             break
 
 def scanHexEscape(prefix=None):
-    global len__py__, index
+    global index
     i = None
     len__py__ = None
     ch = None
@@ -1071,7 +1072,7 @@ def scanNumericLiteral():
 
 def scanStringLiteral():
     global index, lineNumber
-    str = ""
+    str__py__ = ""
     quote = None
     start = None
     ch = None
@@ -1096,31 +1097,31 @@ def scanStringLiteral():
             if (not ch) or (not isLineTerminator((ord(ch[0]) if 0 < len(ch) else None))):
                 while 1:
                     if ch == "n":
-                        str += u"\x0a"
+                        str__py__ += u"\x0a"
                         break
                     elif ch == "r":
-                        str += u"\x0d"
+                        str__py__ += u"\x0d"
                         break
                     elif ch == "t":
-                        str += u"\x09"
+                        str__py__ += u"\x09"
                         break
                     elif (ch == "x") or (ch == "u"):
                         restore = index
                         unescaped = scanHexEscape(ch)
                         if unescaped:
-                            str += unescaped
+                            str__py__ += unescaped
                         else:
                             index = restore
-                            str += ch
+                            str__py__ += ch
                         break
                     elif ch == "b":
-                        str += u"\x08"
+                        str__py__ += u"\x08"
                         break
                     elif ch == "f":
-                        str += u"\x0c"
+                        str__py__ += u"\x0c"
                         break
                     elif ch == "v":
-                        str += u"\x0b"
+                        str__py__ += u"\x0b"
                         break
                     else:
                         if isOctalDigit(ch):
@@ -1134,9 +1135,9 @@ def scanStringLiteral():
                                 if (("0123".find(ch) >= 0) and (index < length)) and isOctalDigit(source[index]):
                                     index += 1
                                     code = (code * 8) + "01234567".find(source[index - 1])
-                            str += unichr(code)
+                            str__py__ += unichr(code)
                         else:
-                            str += ch
+                            str__py__ += ch
                         break
                     break
             else:
@@ -1148,13 +1149,13 @@ def scanStringLiteral():
         elif isLineTerminator((ord(ch[0]) if 0 < len(ch) else None)):
             break
         else:
-            str += ch
+            str__py__ += ch
     if quote != "":
         throwError(jsdict({
 }), Messages.UnexpectedToken, "ILLEGAL")
     return jsdict({
 "type": Token.StringLiteral,
-"value": str,
+"value": str__py__,
 "octal": octal,
 "lineNumber": lineNumber,
 "lineStart": lineStart,
@@ -1163,7 +1164,7 @@ def scanStringLiteral():
 
 def scanRegExp():
     global lookahead, index
-    str = None
+    str__py__ = None
     ch = None
     start = None
     pattern = None
@@ -1178,11 +1179,11 @@ def scanRegExp():
     ch = source[index]
     assert__py__(ch == "/", "Regular expression literal must start with a slash")
     index += 1
-    str = source[index - 1]
+    str__py__ = source[index - 1]
     while index < length:
         index += 1
         ch = source[index - 1]
-        str += ch
+        str__py__ += ch
         if classMarker:
             if ch == "]":
                 classMarker = False
@@ -1193,7 +1194,7 @@ def scanRegExp():
                 if isLineTerminator((ord(ch[0]) if 0 < len(ch) else None)):
                     throwError(jsdict({
 }), Messages.UnterminatedRegExp)
-                str += ch
+                str__py__ += ch
             elif ch == "/":
                 terminated = True
                 break
@@ -1205,7 +1206,7 @@ def scanRegExp():
     if not terminated:
         throwError(jsdict({
 }), Messages.UnterminatedRegExp)
-    pattern = str[1:(1 + (len(str) - 2))]
+    pattern = str[1:(1 + (len(str__py__) - 2))]
     flags = ""
     while index < length:
         ch = source[index]
@@ -1222,21 +1223,21 @@ def scanRegExp():
                 ch = scanHexEscape("u")
                 if ch:
                     flags += ch
-                    str += "\\u"
+                    str__py__ += "\\u"
                     while 1:
                         if not (restore < index):
                             break
-                        str += source[restore]
+                        str__py__ += source[restore]
                         restore += 1
                 else:
                     index = restore
                     flags += "u"
-                    str += "\\u"
+                    str__py__ += "\\u"
             else:
-                str += "\\"
+                str__py__ += "\\"
         else:
             flags += ch
-            str += ch
+            str__py__ += ch
     try:
         value = RegExp(pattern, flags)
     except Exception as e:
@@ -1252,7 +1253,7 @@ def scanRegExp():
 "range": [start, index],
 })
     return jsdict({
-"literal": str,
+"literal": str__py__,
 "value": value,
 "range": [start, index],
 })
