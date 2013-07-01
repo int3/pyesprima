@@ -373,25 +373,25 @@ def __temp__4(elements=None):
 })
 
 def __temp__3(node=None):
-    if extra.source:
+    if extra.source not in [None, False]:
         node.loc.source = extra.source
     return node
 
 def __temp__2(node=None):
     if node.range or node.loc:
-        if extra.loc:
+        if extra.loc not in [None, False]:
             state.markerStack.pop()
             state.markerStack.pop()
-        if extra.range:
+        if extra.range not in [None, False]:
             state.markerStack.pop()
     else:
         SyntaxTreeDelegate.markEnd(node)
     return node
 
 def __temp__1(node=None):
-    if extra.range:
+    if extra.range not in [None, False]:
         node.range = [state.markerStack.pop(), index]
-    if extra.loc:
+    if extra.loc not in [None, False]:
         node.loc = jsdict({
 "start": jsdict({
 "line": state.markerStack.pop(),
@@ -406,10 +406,10 @@ def __temp__1(node=None):
     return node
 
 def __temp__0():
-    if extra.loc:
+    if extra.loc not in [None, False]:
         state.markerStack.append(index - lineStart)
         state.markerStack.append(lineNumber)
-    if extra.range:
+    if extra.range not in [None, False]:
         state.markerStack.append(index)
 
 Token = None
@@ -617,9 +617,9 @@ def addComment(type=None, value=None, start=None, end=None, loc=None):
 "type": type,
 "value": value,
 })
-    if extra.range:
+    if extra.range not in [None, False]:
         comment.range = [start, end]
-    if extra.loc:
+    if extra.loc not in [None, False]:
         comment.loc = loc
     extra.comments.append(comment)
 
@@ -639,8 +639,8 @@ def skipSingleLineComment():
     while index < length:
         ch = (ord(source[index]) if index < len(source) else None)
         index += 1
-        if isLineTerminator(ch):
-            if extra.comments:
+        if isLineTerminator(ch) not in [None, False]:
+            if extra.comments not in [None, False]:
                 comment = source[(start + 2):(index - 1)]
                 loc.end = jsdict({
 "line": lineNumber,
@@ -652,7 +652,7 @@ def skipSingleLineComment():
             lineNumber += 1
             lineStart = index
             return 
-    if extra.comments:
+    if extra.comments not in [None, False]:
         comment = source[(start + 2):index]
         loc.end = jsdict({
 "line": lineNumber,
@@ -666,7 +666,7 @@ def skipMultiLineComment():
     loc = None
     ch = None
     comment = None
-    if extra.comments:
+    if extra.comments not in [None, False]:
         start = index - 2
         loc = jsdict({
 "start": jsdict({
@@ -676,7 +676,7 @@ def skipMultiLineComment():
 })
     while index < length:
         ch = (ord(source[index]) if index < len(source) else None)
-        if isLineTerminator(ch):
+        if isLineTerminator(ch) not in [None, False]:
             if (ch == 13) and ((ord(source[index + 1]) if (index + 1) < len(source) else None) == 10):
                 index += 1
             lineNumber += 1
@@ -689,7 +689,7 @@ def skipMultiLineComment():
             if (ord(source[index + 1]) if (index + 1) < len(source) else None) == 47:
                 index += 1
                 index += 1
-                if extra.comments:
+                if extra.comments not in [None, False]:
                     comment = source[(start + 2):(index - 2)]
                     loc.end = jsdict({
 "line": lineNumber,
@@ -708,9 +708,9 @@ def skipComment():
     ch = None
     while index < length:
         ch = (ord(source[index]) if index < len(source) else None)
-        if isWhiteSpace(ch):
+        if isWhiteSpace(ch) not in [None, False]:
             index += 1
-        elif isLineTerminator(ch):
+        elif isLineTerminator(ch) not in [None, False]:
             index += 1
             if (ch == 13) and ((ord(source[index]) if index < len(source) else None) == 10):
                 index += 1
@@ -799,7 +799,7 @@ def getIdentifier():
         if ch == 92:
             index = start
             return getEscapedIdentifier()
-        if isIdentifierPart(ch):
+        if isIdentifierPart(ch) not in [None, False]:
             index += 1
         else:
             break
@@ -813,7 +813,7 @@ def scanIdentifier():
     id = (getEscapedIdentifier() if (ord(source[index]) if index < len(source) else None) == 92 else getIdentifier())
     if len(id) == 1:
         type = Token.Identifier
-    elif isKeyword(id):
+    elif isKeyword(id) not in [None, False]:
         type = Token.Keyword
     elif id == "null":
         type = Token.NullLiteral
@@ -841,7 +841,7 @@ def scanPunctuator():
     while 1:
         if (code == 126) or ((code == 63) or ((code == 58) or ((code == 93) or ((code == 91) or ((code == 125) or ((code == 123) or ((code == 44) or ((code == 59) or ((code == 41) or ((code == 40) or (code == 46))))))))))):
             index += 1
-            if extra.tokenize:
+            if extra.tokenize not in [None, False]:
                 if code == 40:
                     extra.openParenToken = len(extra.tokens)
                 elif code == 123:
@@ -954,7 +954,7 @@ def scanHexLiteral(start=None):
     if len(number) == 0:
         throwError(jsdict({
 }), Messages.UnexpectedToken, "ILLEGAL")
-    if isIdentifierStart((ord(source[index]) if index < len(source) else None)):
+    if isIdentifierStart((ord(source[index]) if index < len(source) else None)) not in [None, False]:
         throwError(jsdict({
 }), Messages.UnexpectedToken, "ILLEGAL")
     return jsdict({
@@ -1003,21 +1003,25 @@ def scanNumericLiteral():
             if (ch == "x") or (ch == "X"):
                 index += 1
                 return scanHexLiteral(start)
-            if isOctalDigit(ch):
+            if isOctalDigit(ch) not in [None, False]:
                 return scanOctalLiteral(start)
             if ch and isDecimalDigit((ord(ch[0]) if 0 < len(ch) else None)):
                 throwError(jsdict({
 }), Messages.UnexpectedToken, "ILLEGAL")
-        while isDecimalDigit((ord(source[index]) if index < len(source) else None)):
+        __temp__44 = isDecimalDigit((ord(source[index]) if index < len(source) else None))
+        while __temp__44 not in [None, False]:
             index += 1
             number += source[index - 1]
+            __temp__44 = isDecimalDigit((ord(source[index]) if index < len(source) else None))
         ch = source[index] if index < len(source) else None
     if ch == ".":
         index += 1
         number += source[index - 1]
-        while isDecimalDigit((ord(source[index]) if index < len(source) else None)):
+        __temp__45 = isDecimalDigit((ord(source[index]) if index < len(source) else None))
+        while __temp__45 not in [None, False]:
             index += 1
             number += source[index - 1]
+            __temp__45 = isDecimalDigit((ord(source[index]) if index < len(source) else None))
         ch = source[index]
     if (ch == "e") or (ch == "E"):
         index += 1
@@ -1026,14 +1030,16 @@ def scanNumericLiteral():
         if (ch == "+") or (ch == "-"):
             index += 1
             number += source[index - 1]
-        if isDecimalDigit((ord(source[index]) if index < len(source) else None)):
-            while isDecimalDigit((ord(source[index]) if index < len(source) else None)):
+        if isDecimalDigit((ord(source[index]) if index < len(source) else None)) not in [None, False]:
+            __temp__46 = isDecimalDigit((ord(source[index]) if index < len(source) else None))
+            while __temp__46 not in [None, False]:
                 index += 1
                 number += source[index - 1]
+                __temp__46 = isDecimalDigit((ord(source[index]) if index < len(source) else None))
         else:
             throwError(jsdict({
 }), Messages.UnexpectedToken, "ILLEGAL")
-    if isIdentifierStart((ord(source[index]) if index < len(source) else None)):
+    if isIdentifierStart((ord(source[index]) if index < len(source) else None)) not in [None, False]:
         throwError(jsdict({
 }), Messages.UnexpectedToken, "ILLEGAL")
     return jsdict({
@@ -1081,7 +1087,7 @@ def scanStringLiteral():
                     elif (ch == "x") or (ch == "u"):
                         restore = index
                         unescaped = scanHexEscape(ch)
-                        if unescaped:
+                        if unescaped not in [None, False]:
                             str__py__ += unescaped
                         else:
                             index = restore
@@ -1097,7 +1103,7 @@ def scanStringLiteral():
                         str__py__ += u"\x0b"
                         break
                     else:
-                        if isOctalDigit(ch):
+                        if isOctalDigit(ch) not in [None, False]:
                             code = "01234567".find(ch)
                             if code != 0:
                                 octal = True
@@ -1117,7 +1123,7 @@ def scanStringLiteral():
                 lineNumber += 1
                 if (ch == u"\x0d") and (source[index] == u"\x0a"):
                     index += 1
-        elif isLineTerminator((ord(ch[0]) if 0 < len(ch) else None)):
+        elif isLineTerminator((ord(ch[0]) if 0 < len(ch) else None)) not in [None, False]:
             break
         else:
             str__py__ += ch
@@ -1155,14 +1161,14 @@ def scanRegExp():
         index += 1
         ch = source[index - 1]
         str__py__ += ch
-        if classMarker:
+        if classMarker not in [None, False]:
             if ch == "]":
                 classMarker = False
         else:
             if ch == "\\":
                 index += 1
                 ch = source[index - 1]
-                if isLineTerminator((ord(ch[0]) if 0 < len(ch) else None)):
+                if isLineTerminator((ord(ch[0]) if 0 < len(ch) else None)) not in [None, False]:
                     throwError(jsdict({
 }), Messages.UnterminatedRegExp)
                 str__py__ += ch
@@ -1171,7 +1177,7 @@ def scanRegExp():
                 break
             elif ch == "[":
                 classMarker = True
-            elif isLineTerminator((ord(ch[0]) if 0 < len(ch) else None)):
+            elif isLineTerminator((ord(ch[0]) if 0 < len(ch) else None)) not in [None, False]:
                 throwError(jsdict({
 }), Messages.UnterminatedRegExp)
     if not terminated:
@@ -1190,7 +1196,7 @@ def scanRegExp():
                 index += 1
                 restore = index
                 ch = scanHexEscape("u")
-                if ch:
+                if ch not in [None, False]:
                     flags += ch
                     str__py__ += "\\u"
                     while 1:
@@ -1213,7 +1219,7 @@ def scanRegExp():
         throwError(jsdict({
 }), Messages.InvalidRegExp)
     peek()
-    if extra.tokenize:
+    if extra.tokenize not in [None, False]:
         return jsdict({
 "type": Token.RegularExpression,
 "value": value,
@@ -1276,13 +1282,13 @@ def advance():
         return scanPunctuator()
     if (ch == 39) or (ch == 34):
         return scanStringLiteral()
-    if isIdentifierStart(ch):
+    if isIdentifierStart(ch) not in [None, False]:
         return scanIdentifier()
     if ch == 46:
-        if isDecimalDigit((ord(source[index + 1]) if (index + 1) < len(source) else None)):
+        if isDecimalDigit((ord(source[index + 1]) if (index + 1) < len(source) else None)) not in [None, False]:
             return scanNumericLiteral()
         return scanPunctuator()
-    if isDecimalDigit(ch):
+    if isDecimalDigit(ch) not in [None, False]:
         return scanNumericLiteral()
     if extra.tokenize and (ch == 47):
         return advanceSlash()
@@ -1404,7 +1410,7 @@ def throwErrorTolerant(*args):
     try:
         throwError(*args)
     except Exception as e:
-        if extra.errors:
+        if extra.errors != False and extra.errors != None:
             extra.errors.append(e)
         else:
             raise 
@@ -1419,7 +1425,7 @@ def throwUnexpected(token=None):
     if token.type == Token.Identifier:
         throwError(token, Messages.UnexpectedIdentifier)
     if token.type == Token.Keyword:
-        if isFutureReservedWord(token.value):
+        if isFutureReservedWord(token.value) not in [None, False]:
             throwError(token, Messages.UnexpectedReserved)
         elif strict and isStrictModeReservedWord(token.value):
             throwErrorTolerant(token, Messages.StrictReservedWord)
@@ -1459,7 +1465,7 @@ def consumeSemicolon():
     skipComment()
     if lineNumber != line:
         return 
-    if match(";"):
+    if match(";") not in [None, False]:
         lex()
         return 
     if (lookahead.type != Token.EOF) and (not match("}")):
@@ -1471,14 +1477,16 @@ def isLeftHandSide(expr=None):
 def parseArrayInitialiser():
     elements = []
     expect("[")
-    while not match("]"):
-        if match(","):
+    __temp__47 = match("]")
+    while not __temp__47:
+        if match(",") not in [None, False]:
             lex()
             elements.append(None)
         else:
             elements.append(parseAssignmentExpression())
             if not match("]"):
                 expect(",")
+        __temp__47 = match("]")
     expect("]")
     return delegate.createArrayExpression(elements)
 
@@ -1557,7 +1565,8 @@ def parseObjectInitialiser():
 })
     toString = str
     expect("{")
-    while not match("}"):
+    __temp__48 = match("}")
+    while not __temp__48:
         property = parseObjectProperty()
         if property.key.type == Syntax.Identifier:
             name = property.key.name
@@ -1586,6 +1595,7 @@ def parseObjectInitialiser():
         properties.append(property)
         if not match("}"):
             expect(",")
+        __temp__48 = match("}")
     expect("}")
     return delegate.createObjectExpression(properties)
 
@@ -1600,7 +1610,7 @@ def parsePrimaryExpression():
     type = None
     token = None
     expr = None
-    if match("("):
+    if match("(") not in [None, False]:
         return parseGroupExpression()
     type = lookahead.type
     delegate.markStart()
@@ -1611,10 +1621,10 @@ def parsePrimaryExpression():
             throwErrorTolerant(lookahead, Messages.StrictOctalLiteral)
         expr = delegate.createLiteral(lex())
     elif type == Token.Keyword:
-        if matchKeyword("this"):
+        if matchKeyword("this") not in [None, False]:
             lex()
             expr = delegate.createThisExpression()
-        elif matchKeyword("function"):
+        elif matchKeyword("function") not in [None, False]:
             expr = parseFunctionExpression()
     elif type == Token.BooleanLiteral:
         token = lex()
@@ -1624,13 +1634,13 @@ def parsePrimaryExpression():
         token = lex()
         token.value = None
         expr = delegate.createLiteral(token)
-    elif match("["):
+    elif match("[") not in [None, False]:
         expr = parseArrayInitialiser()
-    elif match("{"):
+    elif match("{") not in [None, False]:
         expr = parseObjectInitialiser()
     elif match("/") or match("/="):
         expr = delegate.createLiteral(scanRegExp())
-    if expr:
+    if expr not in [None, False]:
         return delegate.markEnd(expr)
     throwUnexpected(lex())
 
@@ -1640,7 +1650,7 @@ def parseArguments():
     if not match(")"):
         while index < length:
             args.append(parseAssignmentExpression())
-            if match(")"):
+            if match(")") not in [None, False]:
                 break
             expect(",")
     expect(")")
@@ -1671,7 +1681,7 @@ def parseNewExpression():
     delegate.markStart()
     expectKeyword("new")
     callee = parseLeftHandSideExpression()
-    args = (parseArguments() if match("(") else [])
+    args = (parseArguments() if match("(") not in [None, False] else [])
     return delegate.markEnd(delegate.createNewExpression(callee, args))
 
 def parseLeftHandSideExpressionAllowCall():
@@ -1680,20 +1690,26 @@ def parseLeftHandSideExpressionAllowCall():
     args = None
     property = None
     marker = createLocationMarker()
-    expr = (parseNewExpression() if matchKeyword("new") else parsePrimaryExpression())
-    while (match(".") or match("[")) or match("("):
-        if match("("):
+    expr = (parseNewExpression() if matchKeyword("new") not in [None, False] else parsePrimaryExpression())
+    __temp__49 = match(".")
+    __temp__50 = match("[")
+    __temp__51 = match("(")
+    while (__temp__49 or __temp__50) or __temp__51:
+        if match("(") not in [None, False]:
             args = parseArguments()
             expr = delegate.createCallExpression(expr, args)
-        elif match("["):
+        elif match("[") not in [None, False]:
             property = parseComputedMember()
             expr = delegate.createMemberExpression("[", expr, property)
         else:
             property = parseNonComputedMember()
             expr = delegate.createMemberExpression(".", expr, property)
-        if marker:
+        if marker not in [None, False]:
             marker.end()
             marker.apply(expr)
+        __temp__49 = match(".")
+        __temp__50 = match("[")
+        __temp__51 = match("(")
     return expr
 
 def parseLeftHandSideExpression():
@@ -1701,17 +1717,21 @@ def parseLeftHandSideExpression():
     expr = None
     property = None
     marker = createLocationMarker()
-    expr = (parseNewExpression() if matchKeyword("new") else parsePrimaryExpression())
-    while match(".") or match("["):
-        if match("["):
+    expr = (parseNewExpression() if matchKeyword("new") not in [None, False] else parsePrimaryExpression())
+    __temp__52 = match(".")
+    __temp__53 = match("[")
+    while __temp__52 or __temp__53:
+        if match("[") not in [None, False]:
             property = parseComputedMember()
             expr = delegate.createMemberExpression("[", expr, property)
         else:
             property = parseNonComputedMember()
             expr = delegate.createMemberExpression(".", expr, property)
-        if marker:
+        if marker not in [None, False]:
             marker.end()
             marker.apply(expr)
+        __temp__52 = match(".")
+        __temp__53 = match("[")
     return expr
 
 def parsePostfixExpression():
@@ -1789,7 +1809,7 @@ def binaryPrecedence(token=None, allowIn=None):
             prec = 7
             break
         elif token.value == "in":
-            prec = (7 if allowIn else 0)
+            prec = (7 if allowIn not in [None, False] else 0)
             break
         elif (token.value == ">>>") or ((token.value == ">>") or (token.value == "<<")):
             prec = 8
@@ -1832,18 +1852,22 @@ def parseBinaryExpression():
     stack = [left, token, right]
     prec = binaryPrecedence(lookahead, previousAllowIn)
     while prec > 0:
-        while (len(stack) > 2) and (prec <= stack[len(stack) - 2].prec):
+        __temp__54 = len(stack)
+        __temp__55 = len(stack)
+        while (__temp__54 > 2) and (prec <= stack[__temp__55 - 2].prec):
             right = stack.pop()
             operator = stack.pop().value
             left = stack.pop()
             expr = delegate.createBinaryExpression(operator, left, right)
             markers.pop()
             marker = markers.pop()
-            if marker:
+            if marker not in [None, False]:
                 marker.end()
                 marker.apply(expr)
             stack.append(expr)
             markers.append(marker)
+            __temp__54 = len(stack)
+            __temp__55 = len(stack)
         token = lex()
         token.prec = prec
         stack.append(token)
@@ -1859,7 +1883,7 @@ def parseBinaryExpression():
         expr = delegate.createBinaryExpression(stack[i - 1].value, stack[i - 2], expr)
         i -= 2
         marker = markers.pop()
-        if marker:
+        if marker not in [None, False]:
             marker.end()
             marker.apply(expr)
     return expr
@@ -1871,7 +1895,7 @@ def parseConditionalExpression():
     alternate = None
     delegate.markStart()
     expr = parseBinaryExpression()
-    if match("?"):
+    if match("?") not in [None, False]:
         lex()
         previousAllowIn = state.allowIn
         state.allowIn = True
@@ -1894,7 +1918,7 @@ def parseAssignmentExpression():
     delegate.markStart()
     left = parseConditionalExpression()
     node = left
-    if matchAssign():
+    if matchAssign() not in [None, False]:
         if not isLeftHandSide(left):
             throwError(jsdict({
 }), Messages.InvalidLHSInAssignment)
@@ -1909,7 +1933,7 @@ def parseExpression():
     expr = None
     delegate.markStart()
     expr = parseAssignmentExpression()
-    if match(","):
+    if match(",") not in [None, False]:
         expr = delegate.createSequenceExpression([expr])
         while index < length:
             if not match(","):
@@ -1922,7 +1946,7 @@ def parseStatementList():
     list__py__ = []
     statement = None
     while index < length:
-        if match("}"):
+        if match("}") not in [None, False]:
             break
         statement = parseSourceElement()
         if ('undefined' if not 'statement' in locals() else typeof(statement)) == "undefined":
@@ -1960,7 +1984,7 @@ def parseVariableDeclaration(kind=None):
     if kind == "const":
         expect("=")
         init = parseAssignmentExpression()
-    elif match("="):
+    elif match("=") not in [None, False]:
         lex()
         init = parseAssignmentExpression()
     return delegate.markEnd(delegate.createVariableDeclarator(id, init))
@@ -2010,7 +2034,7 @@ def parseIfStatement():
     test = parseExpression()
     expect(")")
     consequent = parseStatement()
-    if matchKeyword("else"):
+    if matchKeyword("else") not in [None, False]:
         lex()
         alternate = parseStatement()
     else:
@@ -2030,7 +2054,7 @@ def parseDoWhileStatement():
     expect("(")
     test = parseExpression()
     expect(")")
-    if match(";"):
+    if match(";") not in [None, False]:
         lex()
     return delegate.createDoWhileStatement(body, test)
 
@@ -2069,7 +2093,7 @@ def parseForStatement():
     init = test
     expectKeyword("for")
     expect("(")
-    if match(";"):
+    if match(";") not in [None, False]:
         lex()
     else:
         if matchKeyword("var") or matchKeyword("let"):
@@ -2085,7 +2109,7 @@ def parseForStatement():
             state.allowIn = False
             init = parseExpression()
             state.allowIn = True
-            if matchKeyword("in"):
+            if matchKeyword("in") not in [None, False]:
                 if not isLeftHandSide(init):
                     throwError(jsdict({
 }), Messages.InvalidLHSInForIn)
@@ -2118,7 +2142,7 @@ def parseContinueStatement():
             throwError(jsdict({
 }), Messages.IllegalContinue)
         return delegate.createContinueStatement(None)
-    if peekLineTerminator():
+    if peekLineTerminator() not in [None, False]:
         if not state.inIteration:
             throwError(jsdict({
 }), Messages.IllegalContinue)
@@ -2145,7 +2169,7 @@ def parseBreakStatement():
             throwError(jsdict({
 }), Messages.IllegalBreak)
         return delegate.createBreakStatement(None)
-    if peekLineTerminator():
+    if peekLineTerminator() not in [None, False]:
         if not (state.inIteration or state.inSwitch):
             throwError(jsdict({
 }), Messages.IllegalBreak)
@@ -2169,11 +2193,11 @@ def parseReturnStatement():
         throwErrorTolerant(jsdict({
 }), Messages.IllegalReturn)
     if (ord(source[index]) if index < len(source) else None) == 32:
-        if isIdentifierStart((ord(source[index + 1]) if (index + 1) < len(source) else None)):
+        if isIdentifierStart((ord(source[index + 1]) if (index + 1) < len(source) else None)) not in [None, False]:
             argument = parseExpression()
             consumeSemicolon()
             return delegate.createReturnStatement(argument)
-    if peekLineTerminator():
+    if peekLineTerminator() not in [None, False]:
         return delegate.createReturnStatement(None)
     if not match(";"):
         if (not match("}")) and (lookahead.type != Token.EOF):
@@ -2184,7 +2208,7 @@ def parseReturnStatement():
 def parseWithStatement():
     object = None
     body = None
-    if strict:
+    if strict not in [None, False]:
         throwErrorTolerant(jsdict({
 }), Messages.StrictModeWith)
     expectKeyword("with")
@@ -2200,7 +2224,7 @@ def parseSwitchCase():
     statement = None
     skipComment()
     delegate.markStart()
-    if matchKeyword("default"):
+    if matchKeyword("default") not in [None, False]:
         lex()
         test = None
     else:
@@ -2225,7 +2249,7 @@ def parseSwitchStatement():
     discriminant = parseExpression()
     expect(")")
     expect("{")
-    if match("}"):
+    if match("}") not in [None, False]:
         lex()
         return delegate.createSwitchStatement(discriminant)
     cases = []
@@ -2233,11 +2257,11 @@ def parseSwitchStatement():
     state.inSwitch = True
     defaultFound = False
     while index < length:
-        if match("}"):
+        if match("}") not in [None, False]:
             break
         clause = parseSwitchCase()
         if clause.test == None:
-            if defaultFound:
+            if defaultFound not in [None, False]:
                 throwError(jsdict({
 }), Messages.MultipleDefaultsInSwitch)
             defaultFound = True
@@ -2249,7 +2273,7 @@ def parseSwitchStatement():
 def parseThrowStatement():
     argument = None
     expectKeyword("throw")
-    if peekLineTerminator():
+    if peekLineTerminator() not in [None, False]:
         throwError(jsdict({
 }), Messages.NewlineAfterThrow)
     argument = parseExpression()
@@ -2263,7 +2287,7 @@ def parseCatchClause():
     delegate.markStart()
     expectKeyword("catch")
     expect("(")
-    if match(")"):
+    if match(")") not in [None, False]:
         throwUnexpected(lookahead)
     param = parseVariableIdentifier()
     if strict and isRestrictedWord(param.name):
@@ -2279,9 +2303,9 @@ def parseTryStatement():
     finalizer = None
     expectKeyword("try")
     block = parseBlock()
-    if matchKeyword("catch"):
+    if matchKeyword("catch") not in [None, False]:
         handlers.append(parseCatchClause())
-    if matchKeyword("finally"):
+    if matchKeyword("finally") not in [None, False]:
         lex()
         finalizer = parseBlock()
     if (len(handlers) == 0) and (not finalizer):
@@ -2386,7 +2410,7 @@ def parseFunctionSourceElements():
         directive = source[(token.range[0] + 1):(token.range[1] - 1)]
         if directive == "use strict":
             strict = True
-            if firstRestricted:
+            if firstRestricted not in [None, False]:
                 throwErrorTolerant(firstRestricted, Messages.StrictOctalLiteral)
         else:
             if (not firstRestricted) and token.octal:
@@ -2401,7 +2425,7 @@ def parseFunctionSourceElements():
     state.inSwitch = False
     state.inFunctionBody = True
     while index < length:
-        if match("}"):
+        if match("}") not in [None, False]:
             break
         sourceElement = parseSourceElement()
         if ('undefined' if not 'sourceElement' in locals() else typeof(sourceElement)) == "undefined":
@@ -2430,18 +2454,18 @@ def parseParams(firstRestricted=None):
             token = lookahead
             param = parseVariableIdentifier()
             key = "$" + token.value
-            if strict:
-                if isRestrictedWord(token.value):
+            if strict not in [None, False]:
+                if isRestrictedWord(token.value) not in [None, False]:
                     stricted = token
                     message = Messages.StrictParamName
                 if key in paramSet:
                     stricted = token
                     message = Messages.StrictParamDupe
             elif not firstRestricted:
-                if isRestrictedWord(token.value):
+                if isRestrictedWord(token.value) not in [None, False]:
                     firstRestricted = token
                     message = Messages.StrictParamName
-                elif isStrictModeReservedWord(token.value):
+                elif isStrictModeReservedWord(token.value) not in [None, False]:
                     firstRestricted = token
                     message = Messages.StrictReservedWord
                 elif key in paramSet:
@@ -2449,7 +2473,7 @@ def parseParams(firstRestricted=None):
                     message = Messages.StrictParamDupe
             params.append(param)
             paramSet[key] = True
-            if match(")"):
+            if match(")") not in [None, False]:
                 break
             expect(",")
     expect(")")
@@ -2476,21 +2500,21 @@ def parseFunctionDeclaration():
     expectKeyword("function")
     token = lookahead
     id = parseVariableIdentifier()
-    if strict:
-        if isRestrictedWord(token.value):
+    if strict not in [None, False]:
+        if isRestrictedWord(token.value) not in [None, False]:
             throwErrorTolerant(token, Messages.StrictFunctionName)
     else:
-        if isRestrictedWord(token.value):
+        if isRestrictedWord(token.value) not in [None, False]:
             firstRestricted = token
             message = Messages.StrictFunctionName
-        elif isStrictModeReservedWord(token.value):
+        elif isStrictModeReservedWord(token.value) not in [None, False]:
             firstRestricted = token
             message = Messages.StrictReservedWord
     tmp = parseParams(firstRestricted)
     params = tmp.params
     stricted = tmp.stricted
     firstRestricted = tmp.firstRestricted
-    if tmp.message:
+    if tmp.message not in [None, False]:
         message = tmp.message
     previousStrict = strict
     body = parseFunctionSourceElements()
@@ -2517,21 +2541,21 @@ def parseFunctionExpression():
     if not match("("):
         token = lookahead
         id = parseVariableIdentifier()
-        if strict:
-            if isRestrictedWord(token.value):
+        if strict not in [None, False]:
+            if isRestrictedWord(token.value) not in [None, False]:
                 throwErrorTolerant(token, Messages.StrictFunctionName)
         else:
-            if isRestrictedWord(token.value):
+            if isRestrictedWord(token.value) not in [None, False]:
                 firstRestricted = token
                 message = Messages.StrictFunctionName
-            elif isStrictModeReservedWord(token.value):
+            elif isStrictModeReservedWord(token.value) not in [None, False]:
                 firstRestricted = token
                 message = Messages.StrictReservedWord
     tmp = parseParams(firstRestricted)
     params = tmp.params
     stricted = tmp.stricted
     firstRestricted = tmp.firstRestricted
-    if tmp.message:
+    if tmp.message not in [None, False]:
         message = tmp.message
     previousStrict = strict
     body = parseFunctionSourceElements()
@@ -2573,7 +2597,7 @@ def parseSourceElements():
         directive = source[(token.range[0] + 1):(token.range[1] - 1)]
         if directive == "use strict":
             strict = True
-            if firstRestricted:
+            if firstRestricted not in [None, False]:
                 throwErrorTolerant(firstRestricted, Messages.StrictOctalLiteral)
         else:
             if (not firstRestricted) and token.octal:
@@ -2671,9 +2695,9 @@ def filterTokenLocation():
 "type": entry.type,
 "value": entry.value,
 })
-        if extra.range:
+        if extra.range not in [None, False]:
             token.range = entry.range
-        if extra.loc:
+        if extra.loc not in [None, False]:
             token.loc = entry.loc
         tokens.append(token)
         i += 1
@@ -2689,9 +2713,9 @@ class LocationMarker(object):
         self.marker[5] = index - lineStart
     
     def apply(self=None, node=None):
-        if extra.range:
+        if extra.range not in [None, False]:
             node.range = [self.marker[0], self.marker[3]]
-        if extra.loc:
+        if extra.loc not in [None, False]:
             node.loc = jsdict({
 "start": jsdict({
 "line": self.marker[1],
@@ -2766,7 +2790,7 @@ def tokenize(code, **options):
         extra.errors = []
     if length > 0:
         if (typeof(source[0])) == "undefined":
-            if isinstance(code, str):
+            if isinstance(code, str) not in [None, False]:
                 source = code.valueOf()
     patch()
     try:
@@ -2779,7 +2803,7 @@ def tokenize(code, **options):
                 token = lex()
             except Exception as lexError:
                 token = lookahead
-                if extra.errors:
+                if extra.errors not in [None, False]:
                     extra.errors.append(lexError)
                     break
                 else:
@@ -2838,7 +2862,7 @@ def parse(code, **options):
             extra.errors = []
     if length > 0:
         if (typeof(source[0])) == "undefined":
-            if isinstance(code, str):
+            if isinstance(code, str) not in [None, False]:
                 source = code.valueOf()
     patch()
     try:
