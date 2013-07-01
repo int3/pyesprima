@@ -639,7 +639,6 @@ def skipSingleLineComment():
     while index < length:
         ch = (ord(source[index]) if index < len(source) else None)
         index += 1
-        index
         if isLineTerminator(ch):
             if extra.comments:
                 comment = source[(start + 2):(index - 1)]
@@ -650,9 +649,7 @@ def skipSingleLineComment():
                 addComment("Line", comment, start, index - 1, loc)
             if (ch == 13) and ((ord(source[index]) if index < len(source) else None) == 10):
                 index += 1
-                index
             lineNumber += 1
-            lineNumber
             lineStart = index
             return 
     if extra.comments:
@@ -682,11 +679,8 @@ def skipMultiLineComment():
         if isLineTerminator(ch):
             if (ch == 13) and ((ord(source[index + 1]) if (index + 1) < len(source) else None) == 10):
                 index += 1
-                index
             lineNumber += 1
-            lineNumber
             index += 1
-            index
             lineStart = index
             if index >= length:
                 throwError(jsdict({
@@ -694,9 +688,7 @@ def skipMultiLineComment():
         elif ch == 42:
             if (ord(source[index + 1]) if (index + 1) < len(source) else None) == 47:
                 index += 1
-                index
                 index += 1
-                index
                 if extra.comments:
                     comment = source[(start + 2):(index - 2)]
                     loc.end = jsdict({
@@ -706,10 +698,8 @@ def skipMultiLineComment():
                     addComment("Block", comment, start, index, loc)
                 return 
             index += 1
-            index
         else:
             index += 1
-            index
     throwError(jsdict({
 }), Messages.UnexpectedToken, "ILLEGAL")
 
@@ -720,29 +710,21 @@ def skipComment():
         ch = (ord(source[index]) if index < len(source) else None)
         if isWhiteSpace(ch):
             index += 1
-            index
         elif isLineTerminator(ch):
             index += 1
-            index
             if (ch == 13) and ((ord(source[index]) if index < len(source) else None) == 10):
                 index += 1
-                index
             lineNumber += 1
-            lineNumber
             lineStart = index
         elif ch == 47:
             ch = (ord(source[index + 1]) if (index + 1) < len(source) else None)
             if ch == 47:
                 index += 1
-                index
                 index += 1
-                index
                 skipSingleLineComment()
             elif ch == 42:
                 index += 1
-                index
                 index += 1
-                index
                 skipMultiLineComment()
             else:
                 break
@@ -782,7 +764,6 @@ def getEscapedIdentifier():
             throwError(jsdict({
 }), Messages.UnexpectedToken, "ILLEGAL")
         index += 1
-        index
         ch = scanHexEscape("u")
         if ((not ch) or (ch == "\\")) or (not isIdentifierStart((ord(ch[0]) if 0 < len(ch) else None))):
             throwError(jsdict({
@@ -793,7 +774,6 @@ def getEscapedIdentifier():
         if not isIdentifierPart(ch):
             break
         index += 1
-        index
         id += unichr(ch)
         if ch == 92:
             id = id[0:(0 + (len(id) - 1))]
@@ -801,7 +781,6 @@ def getEscapedIdentifier():
                 throwError(jsdict({
 }), Messages.UnexpectedToken, "ILLEGAL")
             index += 1
-            index
             ch = scanHexEscape("u")
             if ((not ch) or (ch == "\\")) or (not isIdentifierPart((ord(ch[0]) if 0 < len(ch) else None))):
                 throwError(jsdict({
@@ -822,7 +801,6 @@ def getIdentifier():
             return getEscapedIdentifier()
         if isIdentifierPart(ch):
             index += 1
-            index
         else:
             break
     return source[start:index]
@@ -863,7 +841,6 @@ def scanPunctuator():
     while 1:
         if (code == 126) or ((code == 63) or ((code == 58) or ((code == 93) or ((code == 91) or ((code == 125) or ((code == 123) or ((code == 44) or ((code == 59) or ((code == 41) or ((code == 40) or (code == 46))))))))))):
             index += 1
-            index
             if extra.tokenize:
                 if code == 40:
                     extra.openParenToken = len(extra.tokens)
@@ -893,7 +870,6 @@ def scanPunctuator():
                         index += 2
                         if (ord(source[index]) if index < len(source) else None) == 61:
                             index += 1
-                            index
                         return jsdict({
 "type": Token.Punctuator,
 "value": source[start:index],
@@ -957,7 +933,6 @@ def scanPunctuator():
 })
     if "<>=!+-*%&|^/".find(ch1) >= 0:
         index += 1
-        index
         return jsdict({
 "type": Token.Punctuator,
 "value": ch1,
@@ -1027,7 +1002,6 @@ def scanNumericLiteral():
         if number == "0":
             if (ch == "x") or (ch == "X"):
                 index += 1
-                index
                 return scanHexLiteral(start)
             if isOctalDigit(ch):
                 return scanOctalLiteral(start)
@@ -1084,7 +1058,6 @@ def scanStringLiteral():
     assert__py__((quote == "'") or (quote == "\""), "String literal must starts with a quote")
     start = index
     index += 1
-    index
     while index < length:
         index += 1
         ch = source[index - 1]
@@ -1142,10 +1115,8 @@ def scanStringLiteral():
                     break
             else:
                 lineNumber += 1
-                lineNumber
                 if (ch == u"\x0d") and (source[index] == u"\x0a"):
                     index += 1
-                    index
         elif isLineTerminator((ord(ch[0]) if 0 < len(ch) else None)):
             break
         else:
@@ -1213,12 +1184,10 @@ def scanRegExp():
         if not isIdentifierPart((ord(ch[0]) if 0 < len(ch) else None)):
             break
         index += 1
-        index
         if (ch == "\\") and (index < length):
             ch = source[index]
             if ch == "u":
                 index += 1
-                index
                 restore = index
                 ch = scanHexEscape("u")
                 if ch:
