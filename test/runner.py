@@ -253,7 +253,7 @@ def testAPI(esprima=None, code=None, result=None):
     expected = JSON.stringify(result.result, adjustRegexLiteral, 4)
     try:
         if ('undefined' if not ('property' in result) else typeof(result.property)) != "undefined":
-            res = esprima[result.property]
+            res = getattr(esprima, result.property)
         else:
             res = getattr(esprima, result.call)(*result.args)
         cleanUpFloats(res)
@@ -294,10 +294,13 @@ def main():
         fixtures = json.load(f)
     failures = 0
     passes = 0
+    # API tests that check for JavaScript's 'undefined' value have no good
+    # equivalent in Python, so we skip them.
+    # Also, JSON.stringify and json.dumps seem to treat floats slightly
+    # differently, so we xfail that one numeric test.
     xfail = set(['Numeric Literals: 6.02214179e+23',
                  'API: tokenize(undefined)',
                  'API: parse()',
-                 'API: Syntax',
                  'API: parse(undefined)',
                  'API: tokenize()'])
     for category, fixture in fixtures.iteritems():
